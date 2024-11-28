@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class SpecialRoutesFilter extends ZuulFilter {
@@ -50,6 +52,8 @@ public class SpecialRoutesFilter extends ZuulFilter {
 
     @Autowired
     RestTemplate restTemplate;
+    
+    private static final Logger logger = LoggerFactory.getLogger(SpecialRoutesFilter.class);
 
     @Override
     public String filterType() {
@@ -77,6 +81,7 @@ public class SpecialRoutesFilter extends ZuulFilter {
                              null, AbTestingRoute.class, serviceName);
         }
         catch(HttpClientErrorException ex){
+            logger.info("http error in ABRoutingInfo", ex.getResponseBodyAsString());
             if (ex.getStatusCode()== HttpStatus.NOT_FOUND) return null;
             throw ex;
         }
@@ -87,7 +92,7 @@ public class SpecialRoutesFilter extends ZuulFilter {
         int index = oldEndpoint.indexOf(serviceName);
 
         String strippedRoute = oldEndpoint.substring(index + serviceName.length());
-        System.out.println("Target route: " + String.format("%s/%s", newEndpoint, strippedRoute));
+        logger.info("Target route: " + String.format("%s/%s", newEndpoint, strippedRoute));
         return String.format("%s/%s", newEndpoint, strippedRoute);
     }
 
